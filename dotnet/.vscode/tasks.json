@@ -1,0 +1,26 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "dotnet",
+			"task": "build",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "build"
+		},
+		{
+			"type": "dotnet",
+			"task": "watch API",
+			"file": "E:\\github\\Employee\\dotnet\\API\\API.csproj",
+			"problemMatcher": [],
+			"label": "watch"
+		},
+		{
+			"type": "dotnet",
+			"task": "run",
+			"file": "E:\\github\\Employee\\dotnet\\API\\API.csproj",
+			"problemMatcher": [],
+			"label": "run"
+		}
+	]
+}
