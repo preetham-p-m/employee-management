@@ -8,7 +8,6 @@ namespace Application.Validation
         public EmployeeDtoValidator()
         {
             RuleFor(a => a.Name).NotEmpty().MinimumLength(3).MaximumLength(50);
-            RuleFor(a => a.DateOfBirth).NotNull();
         }
     }
 }

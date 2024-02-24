@@ -14,6 +14,7 @@ namespace API
 
             // Add services to the container.
             builder.Services.AddServices();
+            builder.Services.AddValidators();
 
             builder.Services.AddControllers();
 

@@ -1,10 +1,11 @@
 ﻿using Application.DTO;
-using Application.Validation;
 using Domain.Employee;
 using Domain.Enums;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Persistance;
 
 namespace Application;
@@ -13,13 +14,27 @@ public class EmployeeService : IEmployeeService
 {
     private readonly DataContext dataContext;
 
-    public EmployeeService(DataContext dataContext)
+    private readonly IValidator<EmployeeDto> validator;
+
+    private readonly ILogger<EmployeeService> logger;
+
+    public EmployeeService(ILogger<EmployeeService> logger, DataContext dataContext, IValidator<EmployeeDto> validator)
     {
+        this.logger = logger;
         this.dataContext = dataContext;
+        this.validator = validator;
     }
 
-    public async Task<Employee> CreateEmployee(EmployeeDto employeeDto)
+    public async Task<object> CreateEmployee(EmployeeDto employeeDto)
     {
+        var validationResult = await this.validator.ValidateAsync(employeeDto);
+
+        if (!validationResult.IsValid)
+        {
+            this.logger.LogError(validationResult.Errors.ToArray().ToString());
+            return new ValidationResult(validationResult.Errors);
+        }
+
         var employee = new Employee()
         {
             Name = employeeDto.Name,
@@ -43,7 +58,7 @@ public class EmployeeService : IEmployeeService
         return await this.dataContext.Employees.FirstOrDefaultAsync(x => x.Id == id);
     }
 
-    public async Task<Employee> EditEmployee(Guid id, EmployeeDto employeeDto)
+    public async Task<object> EditEmployee(Guid id, EmployeeDto employeeDto)
     {
         var employee = await this.dataContext.Employees.FirstOrDefaultAsync(x => x.Id == id);
 
@@ -52,9 +67,12 @@ public class EmployeeService : IEmployeeService
             throw new BadHttpRequestException("Employee not found");
         }
 
-        if (!string.IsNullOrWhiteSpace(employeeDto.Name))
+        var validationResult = await this.validator.ValidateAsync(employeeDto);
+
+        if (!validationResult.IsValid)
         {
-            employee.Name = employeeDto.Name;
+            this.logger.LogError(validationResult.Errors.ToArray().ToString());
+            return new ValidationResult(validationResult.Errors);
         }
 
         employee.DateOfBirth = employeeDto.DateOfBirth;
@@ -64,7 +82,27 @@ public class EmployeeService : IEmployeeService
         return employee;
     }
 
-    public async Task<Boolean> DeleteEmployee(Guid id){
+    public async Task<Employee> ChangeStatus(Guid id)
+    {
+        var employee = await this.dataContext.Employees.FirstOrDefaultAsync(x => x.Id == id);
+
+        if (employee == null)
+        {
+            throw new BadHttpRequestException("Employee not found");
+        }
+
+        employee.Status =
+            employee.Status == EmployeeStatus.Active
+                ? EmployeeStatus.Inactive
+                : EmployeeStatus.Active;
+
+        await this.dataContext.SaveChangesAsync();
+
+        return employee;
+    }
+
+    public async Task<Boolean> DeleteEmployee(Guid id)
+    {
         var employee = await this.dataContext.Employees.FirstOrDefaultAsync(x => x.Id == id);
 
         if (employee == null)
@@ -75,6 +113,5 @@ public class EmployeeService : IEmployeeService
         this.dataContext.Remove(employee);
 
         return await this.dataContext.SaveChangesAsync() > 0;
-
     }
 }

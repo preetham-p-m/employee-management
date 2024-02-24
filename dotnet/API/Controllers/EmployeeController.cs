@@ -17,7 +17,7 @@ public class EmployeeController : ControllerBase
     }
 
     [HttpPost()]
-    public async Task<Employee> CreateEmployee([FromBody] EmployeeDto employeeDto)
+    public async Task<object> CreateEmployee([FromBody] EmployeeDto employeeDto)
     {
         return await this.employeeService.CreateEmployee(employeeDto);
     }
@@ -35,12 +35,15 @@ public class EmployeeController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<Employee> EditEmployee(
-        [FromRoute] Guid id,
-        [FromBody] EmployeeDto employeeDto
-    )
+    public async Task<object> EditEmployee([FromRoute] Guid id, [FromBody] EmployeeDto employeeDto)
     {
         return await this.employeeService.EditEmployee(id, employeeDto);
+    }
+
+    [HttpPut("{id}/change-status")]
+    public async Task<Employee> ChangeEmployeeStatus([FromRoute] Guid id)
+    {
+        return await this.employeeService.ChangeStatus(id);
     }
 
     [HttpDelete("{id}")]
