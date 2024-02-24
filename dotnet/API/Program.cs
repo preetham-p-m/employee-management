@@ -16,6 +16,22 @@ namespace API
             builder.Services.AddServices();
             builder.Services.AddValidators();
 
+            builder.Services.AddCors(opt =>
+            {
+                opt.AddPolicy(
+                    "CorsPolicy",
+                    policy =>
+                    {
+                        // white-listing UI application
+                        policy
+                            .AllowAnyMethod()
+                            .AllowAnyHeader()
+                            .AllowCredentials()
+                            .WithOrigins("http://localhost:3000");
+                    }
+                );
+            });
+
             builder.Services.AddControllers();
 
             builder.Services.AddEndpointsApiExplorer();
@@ -60,6 +76,7 @@ namespace API
                 logger.LogError("Error during Migration");
                 throw;
             }
+            app.UseCors("CorsPolicy");
 
             app.Run();
         }
